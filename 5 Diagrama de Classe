@@ -1,0 +1,139 @@
+from datetime import date
+
+# Classes:
+
+class Registro:  # Guarda o registro de movimentações de uma conta
+
+    def __init__(self):
+        self._movimentos = []
+
+    @property
+    def movimentos(self):
+        return self._movimentos
+
+    def adicionar_movimento(self, acao, quantia):  # Adiciona nova movimentação
+        self._movimentos.append({
+            "acao": acao,
+            "quantia": quantia,
+            "data": date.today().strftime("%d/%m/%Y"),
+        })
+
+
+class ContaBancaria:
+
+    def __init__(self, codigo, titular):
+        self._saldo = 0.0
+        self._codigo = codigo
+        self._agencia = "1001"
+        self._titular = titular
+        self._registro = Registro()
+
+    @property
+    def saldo(self):
+        return self._saldo
+
+    @property
+    def codigo(self):
+        return self._codigo
+
+    @property
+    def agencia(self):
+        return self._agencia
+
+    @property
+    def titular(self):
+        return self._titular
+
+    @property
+    def registro(self):
+        return self._registro
+
+    def sacar(self, quantia):  # Efetua saque
+        if quantia <= 0 or quantia > self._saldo:
+            return False
+        self._saldo -= quantia
+        self._registro.adicionar_movimento("Retirada", quantia)
+        return True
+
+    def depositar(self, quantia):  # Efetua depósito
+        if quantia <= 0:
+            return False
+        self._saldo += quantia
+        self._registro.adicionar_movimento("Depósito", quantia)
+        return True
+
+
+class Pessoa:
+    def __init__(self, nome, cpf, endereco):
+        self._nome = nome
+        self._cpf = cpf
+        self._endereco = endereco
+        self._contas = []
+
+    @property
+    def nome(self):
+        return self._nome
+
+    @property
+    def cpf(self):
+        return self._cpf
+
+    @property
+    def endereco(self):
+        return self._endereco
+
+    def vincular_conta(self, conta):  # Vincula conta à pessoa
+        self._contas.append(conta)
+
+    def executar_movimento(self, conta, acao, quantia):  # Executa saque ou depósito
+        if acao == "retirada":
+            if conta.sacar(quantia):
+                print(f"Retirada de R$ {quantia:.2f} concluída com sucesso!")
+            else:
+                print("Falha ao tentar retirar.")
+        elif acao == "deposito":
+            if conta.depositar(quantia):
+                print(f"Depósito de R$ {quantia:.2f} concluído com sucesso!")
+            else:
+                print("Falha ao tentar depositar.")
+        else:
+            print("Movimento inválido.")
+
+
+# Exemplo:
+if __name__ == "__main__":
+    # Cria uma pessoa
+    pessoa1 = Pessoa(nome="Bruno Soares Vilalba", cpf="123.456.789-00", endereco="Av. Brasil, 500")
+
+    # Cria conta vinculada à pessoa
+    conta1 = ContaBancaria(codigo=101, titular=pessoa1)
+    pessoa1.vincular_conta(conta1)
+
+    # Faz movimentos
+    pessoa1.executar_movimento(conta1, "deposito", 800.0)
+    pessoa1.executar_movimento(conta1, "retirada", 250.0)
+    pessoa1.executar_movimento(conta1, "retirada", 700.0)  # Deve falhar
+
+    # Mostra informações
+    print("\n=== DETALHES DA CONTA ===")
+    print(f"Titular: {conta1.titular.nome}")
+    print(f"Código da Conta: {conta1.codigo}")
+    print(f"Saldo disponível: R$ {conta1.saldo:.2f}")
+
+    print("\n=== REGISTRO DE MOVIMENTOS ===")
+    if not conta1.registro.movimentos:
+        print("Nenhum movimento realizado.")
+    else:
+        for mov in conta1.registro.movimentos:
+            print(f"{mov['acao']} - R$ {mov['quantia']:.2f} - Data: {mov['data']}")
+
+
+
+
+
+
+
+
+
+
+
